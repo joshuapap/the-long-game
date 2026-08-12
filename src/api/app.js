@@ -112,6 +112,7 @@ function compView(comp, userId, asOf) {
            split: JSON.parse(comp.payout_split) },
     me: mine && { pos: mine.pos, move: mine.move, pts: Number(mine.pts.toFixed(1)), hits: mine.hits },
     leader: L[0] && { name: L[0].user.name, pts: Number(L[0].pts.toFixed(1)) },
+    second: L[1] && { pts: Number(L[1].pts.toFixed(1)) },
   };
 }
 
@@ -223,6 +224,42 @@ app.get('/api/comps/:id/results', auth.requireAuth, requireMember, (req, res) =>
         WHERE res.event_id = ?`).all(r.event_id).map(x => x.label),
     }));
   res.json({ results: rows });
+});
+
+// Set up the competition: a commissioner adds the events/questions people tip on.
+// User-created events are 'manual' (the commissioner resolves them) since there's
+// no feed for an arbitrary question.
+app.post('/api/comps/:id/events', auth.requireAuth, requireCommissioner, (req, res) => {
+  const b = req.body || {};
+  const title = String(b.title || '').trim();
+  const category = (String(b.category || '').trim()) || 'General';
+  const options = Array.isArray(b.options) ? b.options.map(o => String(o || '').trim()).filter(Boolean) : [];
+  const lock = String(b.lock_date || '').slice(0, 10);
+  const resolve = (String(b.resolve_date || '').slice(0, 10)) || lock;
+  const dateRe = /^\d{4}-\d{2}-\d{2}$/;
+  if (title.length < 3) return res.status(400).json({ error: 'bad_title', message: 'Give the event a title (3+ characters).' });
+  if (options.length < 2) return res.status(400).json({ error: 'need_two_options', message: 'Add at least two options to pick between.' });
+  if (options.length > 12) return res.status(400).json({ error: 'too_many_options', message: 'Twelve options max.' });
+  if (!dateRe.test(lock)) return res.status(400).json({ error: 'bad_lock_date', message: 'Pick a lock date.' });
+  if (!dateRe.test(resolve)) return res.status(400).json({ error: 'bad_resolve_date', message: 'Pick a decided-by date.' });
+  if (resolve < lock) return res.status(400).json({ error: 'resolve_before_lock', message: 'The decided date can\u2019t be before the lock date.' });
+  const info = db.prepare(`INSERT INTO events (comp_id,category,title,lock_date,resolve_date,feed_tier,provider,points)
+    VALUES (?,?,?,?,?, 'manual', 'Commissioner', 10)`).run(req.comp.id, category, title, lock, resolve);
+  const ins = db.prepare('INSERT INTO options (event_id,label,ord) VALUES (?,?,?)');
+  options.forEach((l, i) => ins.run(info.lastInsertRowid, l, i));
+  res.json({ ok: true, event_id: info.lastInsertRowid });
+});
+
+// Remove an event that hasn't been resolved yet (setup fixups).
+app.delete('/api/events/:id', auth.requireAuth, (req, res) => {
+  const ev = db.prepare('SELECT * FROM events WHERE id=?').get(req.params.id);
+  if (!ev) return res.status(404).json({ error: 'no_event' });
+  const comp = db.prepare('SELECT * FROM comps WHERE id=?').get(ev.comp_id);
+  const m = db.prepare('SELECT role FROM memberships WHERE comp_id=? AND user_id=?').get(comp.id, req.user.id);
+  if (!m || m.role !== 'commissioner') return res.status(403).json({ error: 'not_commissioner' });
+  if (db.prepare('SELECT 1 FROM results WHERE event_id=?').get(ev.id)) return res.status(409).json({ error: 'already_resolved', message: 'That event already has a result \u2014 undo it first.' });
+  db.prepare('DELETE FROM events WHERE id=?').run(ev.id);   // options/tips/proposals cascade
+  res.json({ ok: true });
 });
 
 app.post('/api/events/:id/tip', auth.requireAuth, (req, res) => {
