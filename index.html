@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Long Game</title>
+<style>
+:root{
+  --bg:#0E0F1A; --card:#191B2A; --raised:#222434; --sunken:#141524;
+  --ink:#F2F3F8; --ink-soft:#C3C6D4; --muted:#8A8FA3;
+  --accent:#7C6BE0; --accent-soft:#7C6BE01F; --accent-dim:#A79BEE;
+  --danger:#F2686B; --success:#4FCE8F; --warn:#E8B45C;
+  --line:#2C2E42; --line-soft:#20222F; --radius:16px; --radius-sm:12px;
+  --comp:#7C6BE0; --comp-soft:#7C6BE01F;
+}
+*{box-sizing:border-box;} html,body{margin:0;padding:0;}
+body{background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;
+  font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.55;}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums;}
+a{color:var(--accent-dim);cursor:pointer;}
+.wrap{max-width:640px;margin:0 auto;padding:22px 18px 90px;}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 0 20px;}
+.brand{display:flex;align-items:center;gap:11px;}
+.brand .mark{width:38px;height:38px;border-radius:11px;background:var(--comp);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px;}
+.brand strong{font-size:17px;font-weight:650;letter-spacing:-.3px;}
+.brand small{display:block;color:var(--muted);font-size:12.5px;}
+.btn{border:1px solid var(--line);border-radius:11px;padding:11px 16px;font:inherit;font-size:14px;font-weight:600;cursor:pointer;background:var(--raised);color:var(--ink);}
+.btn:hover{border-color:var(--muted);}
+.btn.go{background:var(--comp);border-color:var(--comp);color:#fff;}
+.btn.go:hover{filter:brightness(1.08);}
+.btn.sm{padding:7px 12px;font-size:13px;border-radius:9px;}
+.btn.block{width:100%;justify-content:center;}
+.field{display:block;margin:0 0 12px;}
+.field span{display:block;font-size:12.5px;color:var(--muted);margin-bottom:6px;}
+input,select{width:100%;background:var(--sunken);border:1px solid var(--line);border-radius:11px;padding:12px;font:inherit;font-size:15px;color:var(--ink);}
+input:focus,select:focus{outline:2px solid var(--accent);outline-offset:1px;}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px;margin-bottom:14px;}
+.h{font-size:22px;font-weight:680;letter-spacing:-.4px;margin:0 0 4px;}
+.sub{color:var(--muted);font-size:13.5px;margin:0 0 18px;}
+.seg{display:flex;background:var(--sunken);border:1px solid var(--line);border-radius:11px;padding:3px;margin-bottom:18px;}
+.seg button{flex:1;background:transparent;border:none;color:var(--muted);font:inherit;font-weight:600;font-size:13.5px;padding:9px;border-radius:8px;cursor:pointer;}
+.seg button.on{background:var(--comp);color:#fff;}
+.err{background:#F2686B1F;border:1px solid #F2686B55;color:var(--danger);font-size:13px;border-radius:10px;padding:10px 12px;margin-bottom:12px;}
+.muted{color:var(--muted);} .row{display:flex;gap:12px;flex-wrap:wrap;}
+/* plans */
+.plan{border:1px solid var(--line);border-radius:var(--radius-sm);padding:16px;flex:1;min-width:150px;cursor:pointer;background:var(--sunken);}
+.plan.on{border-color:var(--comp);background:var(--comp-soft);}
+.plan .nm{font-weight:650;font-size:15px;}
+.plan .pr{font-size:26px;font-weight:720;letter-spacing:-1px;margin:6px 0;}
+.plan .pr small{font-size:13px;font-weight:500;color:var(--muted);letter-spacing:0;}
+.plan ul{margin:8px 0 0;padding-left:16px;color:var(--muted);font-size:12.5px;line-height:1.7;}
+/* dashboard */
+.compbar{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+.compbar select{flex:1;}
+.hero{background:linear-gradient(160deg,var(--comp-soft),transparent 60%),var(--card);border:1px solid var(--comp);border-radius:var(--radius);overflow:hidden;margin-bottom:12px;}
+.hero .head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;padding:18px 20px 0;flex-wrap:wrap;}
+.hero .nm{font-weight:650;font-size:16px;} .hero .cad{color:var(--muted);font-size:12.5px;margin-top:2px;}
+.badge{font-size:11.5px;font-weight:600;padding:4px 10px;border-radius:20px;background:var(--line-soft);color:var(--muted);white-space:nowrap;}
+.badge.live{background:#4FCE8F1F;color:var(--success);}
+.pts{text-align:center;padding:14px 20px 18px;}
+.pts .k{font-size:11.5px;font-weight:650;letter-spacing:1.4px;text-transform:uppercase;color:var(--accent-dim);}
+.pts .n{font-weight:760;letter-spacing:-4px;line-height:.95;margin:10px 0 8px;font-size:clamp(64px,20vw,96px);text-shadow:0 0 40px var(--accent-soft);}
+.pts .n .u{font-size:.28em;font-weight:600;color:var(--muted);letter-spacing:0;margin-left:8px;}
+.pts .s{color:var(--muted);font-size:13px;}
+.foot{border-top:1px solid var(--line);padding:13px 20px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+.stat .k{font-size:11.5px;font-weight:650;letter-spacing:1.1px;text-transform:uppercase;color:var(--muted);}
+.stat .v{font-size:30px;font-weight:720;letter-spacing:-1.2px;margin:8px 0 4px;}
+.stat .v .sub{font-size:.44em;font-weight:600;color:var(--muted);margin-left:5px;}
+.stat .s{font-size:12.5px;color:var(--muted);}
+.potcard{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;
+  border-color:var(--warn);background:linear-gradient(160deg,#E8B45C1A,transparent 60%),var(--card);}
+.potcard .k{font-size:11.5px;font-weight:650;letter-spacing:1.1px;text-transform:uppercase;color:var(--warn);}
+.potcard .v{font-size:30px;font-weight:720;letter-spacing:-1px;margin-top:4px;}
+.potcard .s{font-size:12.5px;color:var(--muted);margin-top:2px;}
+.lad .r{display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid var(--line);}
+.lad .r:last-child{border-bottom:none;}
+.lad .pos{font-family:ui-monospace,Menlo;font-weight:650;color:var(--muted);width:22px;}
+.lad .av{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;}
+.lad .nm{flex:1;font-weight:550;font-size:13.5px;} .lad .r.me{}
+.lad .pt{font-family:ui-monospace,Menlo;font-weight:700;}
+.lad .pz{font-family:ui-monospace,Menlo;font-size:12px;color:var(--warn);min-width:56px;text-align:right;}
+.tabbar{position:fixed;left:0;right:0;bottom:0;background:var(--sunken);border-top:1px solid var(--line);display:flex;padding:6px 4px calc(6px + env(safe-area-inset-bottom));}
+.tabbar button{flex:1;background:transparent;border:none;color:var(--muted);font:inherit;font-size:10.5px;font-weight:550;display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 2px;cursor:pointer;}
+.tabbar button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+.tabbar button.on{color:var(--comp);}
+.center{text-align:center;padding:40px 16px;color:var(--muted);}
+.tabbar button{position:relative;}
+.tpip{position:absolute;top:2px;left:50%;margin-left:6px;background:var(--danger);color:#fff;font-size:9.5px;font-weight:700;border-radius:20px;padding:0 5px;min-width:15px;text-align:center;}
+.compbar .btn{flex:0 0 auto;padding:11px 14px;}
+.cathead{font-size:11.5px;font-weight:650;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin:2px 0 12px;}
+.sechead{font-size:11.5px;font-weight:650;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin:20px 0 10px;}
+.evrow{padding:14px 0;border-bottom:1px solid var(--line);} .evrow:last-child{border-bottom:none;}
+.evtop{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;}
+.evtitle{font-weight:600;font-size:14px;} .evsub{font-size:12px;color:var(--muted);margin-top:3px;}
+.opts{display:flex;flex-wrap:wrap;gap:8px;margin-top:11px;}
+.opt{background:var(--sunken);border:1px solid var(--line);border-radius:10px;padding:9px 12px;font:inherit;font-size:13px;color:var(--ink);cursor:pointer;font-weight:550;}
+.opt:hover:not(.dis){border-color:var(--muted);}
+.opt.mine{border-color:var(--comp);background:var(--comp-soft);}
+.opt.win{border-color:var(--success);background:var(--success-soft);}
+.opt.dis{cursor:default;opacity:.85;}
+.evnote{font-size:12px;color:var(--warn);margin-top:8px;}
+.poolwrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+table.pool{border-collapse:separate;border-spacing:0;font-size:12px;min-width:520px;}
+table.pool th{position:sticky;top:0;text-align:left;font-size:11px;font-weight:600;color:var(--muted);padding:8px 9px;border-bottom:1px solid var(--line);white-space:nowrap;}
+table.pool td{padding:8px 9px;border-bottom:1px solid var(--line-soft);}
+table.pool .evc{min-width:150px;position:sticky;left:0;background:var(--card);border-right:1px solid var(--line);}
+table.pool th.evc{z-index:2;}
+.pc{text-align:center;color:var(--ink-soft);white-space:nowrap;}
+.pc.hit{background:var(--success-soft);color:var(--success);font-weight:600;}
+.deskhead{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.prop.conflict{border-color:var(--danger);}
+.feedsays{margin-top:10px;font-size:13px;color:var(--ink-soft);background:var(--sunken);border:1px solid var(--line);border-radius:10px;padding:10px 12px;}
+.conflictnote{margin-top:10px;font-size:12.5px;color:var(--danger);background:var(--danger-soft);border:1px solid #F2686B55;border-radius:10px;padding:10px 12px;}
+.lbl{font-size:12px;color:var(--muted);margin:12px 0 8px;}
+.crow{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line-soft);font-size:12.5px;}
+.crow:last-child{border-bottom:none;}
+.crow .ct{flex:1;font-weight:550;} .crow .cw{color:var(--ink-soft);} .crow .cm{color:var(--muted);font-size:11.5px;}
+.chkrow{display:flex;align-items:center;gap:10px;margin:4px 0 12px;font-size:14px;} .chkrow input{width:auto;}
+</style>
+</head>
+<body>
+<div id="root" class="wrap"></div>
+
+<script>
+const $ = (t, a={}, ...k) => { const e=document.createElement(t);
+  for(const key in a){ if(key==='html') e.innerHTML=a[key]; else if(key.startsWith('on')) e.addEventListener(key.slice(2),a[key]); else if(a[key]!=null) e.setAttribute(key,a[key]); }
+  k.flat().forEach(c=>c!=null&&c!==false&&e.append(c.nodeType?c:document.createTextNode(c))); return e; };
+const api = async (path, opts={}) => {
+  const r = await fetch('/api'+path, { headers:{'content-type':'application/json'}, ...opts,
+    body: opts.body?JSON.stringify(opts.body):undefined });
+  const d = await r.json().catch(()=>({})); if(!r.ok) throw Object.assign(new Error(d.error||'error'),{data:d}); return d;
+};
+const state = { user:null, sub:null, comps:[], active:null, tab:'home', now:null };
+const initials = n => n.slice(0,2).toUpperCase();
+const ICON = {
+  home:'<svg viewBox="0 0 24 24"><path d="M3 20h18"/><rect x="5" y="11" width="4" height="7" rx="1"/><rect x="14" y="6" width="4" height="12" rx="1"/></svg>',
+  tips:'<svg viewBox="0 0 24 24"><path d="M4 5h16v14H4z"/><path d="M8 10h8M8 14h5"/></svg>',
+  pool:'<svg viewBox="0 0 24 24"><circle cx="9" cy="9" r="3"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0"/><circle cx="17" cy="10" r="2.4"/><path d="M15 19a4.6 4.6 0 0 1 6-4.2"/></svg>',
+  desk:'<svg viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="16" rx="2"/><path d="M9 4h6v3H9z"/><path d="M9 13l2 2 4-4"/></svg>',
+  acct:'<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.2"/><path d="M5 20a7 7 0 0 1 14 0"/></svg>',
+};
+
+async function boot(){
+  try { const me = await api('/me'); state.user=me.user; state.sub=me.subscription; state.now=me.now; } catch{}
+  if(state.user) await loadComps();
+  render();
+}
+async function loadComps(){
+  const { comps } = await api('/comps'); state.comps = comps;
+  if(!state.active || !comps.find(c=>c.id===state.active)) state.active = comps[0]?.id || null;
+}
+
+/* ------------------------------ auth ------------------------------ */
+function authView(root){
+  let mode='login', err=null;
+  const box=$('div');
+  const draw=()=>{ box.innerHTML='';
+    box.append(
+      $('div',{class:'top'}, $('div',{class:'brand'},
+        $('div',{class:'mark'},'TLG'), $('div',{}, $('strong',{},'The Long Game'), $('small',{},'Prediction comps of any shape')))),
+      $('div',{class:'card'},
+        $('div',{class:'seg'},
+          $('button',{class:mode==='login'?'on':'',onclick:()=>{mode='login';err=null;draw();}},'Log in'),
+          $('button',{class:mode==='register'?'on':'',onclick:()=>{mode='register';err=null;draw();}},'Create account')),
+        err?$('div',{class:'err'},err):null,
+        mode==='register'?field('Display name','name','text','Sam'):null,
+        field('Email','email','email','you@demo.lg'),
+        field('Password','password','password','password'),
+        $('button',{class:'btn go block',onclick:submit}, mode==='login'?'Log in':'Create account'),
+        mode==='login'?$('p',{class:'sub',style:'margin:14px 0 0;text-align:center'},'Demo: you@demo.lg / password'):null),
+      mode==='register'?planPicker():null);
+  };
+  const field=(label,id,type,ph)=>$('label',{class:'field'},$('span',{},label),$('input',{id:'f_'+id,type,placeholder:ph}));
+  let chosenPlan='free';
+  function planPicker(){
+    const c=$('div',{class:'card'}, $('div',{class:'h',style:'font-size:16px'},'Choose a plan'),
+      $('p',{class:'sub'},'Start free. Cash-pot comps need Club or above.'));
+    const row=$('div',{class:'row',id:'plans'}); c.append(row);
+    api('/plans').then(({plans})=>{ plans.forEach(p=>{
+      const el=$('div',{class:'plan'+(p.id===chosenPlan?' on':''),onclick:()=>{chosenPlan=p.id;[...row.children].forEach(x=>x.classList.remove('on'));el.classList.add('on');}},
+        $('div',{class:'nm'},p.name),
+        $('div',{class:'pr'}, p.price_cents?p.price:'Free', p.price_cents?$('small',{},'/mo'):null),
+        $('ul',{html:p.features.map(f=>`<li>${f}</li>`).join('')}));
+      row.append(el); }); });
+    return c;
+  }
+  async function submit(){ err=null;
+    const email=byId('f_email'), password=byId('f_password');
+    try{
+      if(mode==='register'){ await api('/auth/register',{method:'POST',body:{displayName:byId('f_name'),email,password}});
+        if(chosenPlan!=='free') await api('/subscribe',{method:'POST',body:{planId:chosenPlan}}); }
+      else await api('/auth/login',{method:'POST',body:{email,password}});
+      await boot();
+    }catch(e){ err=({email_taken:'That email is already registered.',bad_credentials:'Wrong email or password.',
+      weak_password:'Password must be at least 6 characters.',missing_fields:'Fill in all fields.'})[e.message]||e.message; draw(); }
+  }
+  const byId=id=>document.getElementById('f_'+id)?.value?.trim()||document.getElementById(id)?.value?.trim();
+  draw(); root.append(box);
+}
+
+/* ---------------------------- dashboard --------------------------- */
+function shell(root, body){
+  root.append(
+    $('div',{class:'top'},
+      $('div',{class:'brand'}, $('div',{class:'mark'},'TLG'),
+        $('div',{}, $('strong',{},'The Long Game'), $('small',{}, state.user.name+' · '+(state.sub?.plan_name||'Free')))),
+      $('button',{class:'btn sm',onclick:async()=>{await api('/auth/logout',{method:'POST'});location.reload();}},'Log out')),
+    body,
+    tabbar());
+}
+const activeComp = () => state.comps.find(x=>x.id===state.active);
+function applyComp(c){ document.documentElement.style.setProperty('--comp',c.color);
+  document.documentElement.style.setProperty('--comp-soft',c.color+'22'); }
+function compBar(c){ return $('div',{class:'compbar'},
+  selectEl(state.comps.map(x=>[x.id,x.name+(x.reward_mode==='cash'?' · '+x.buy_in:'')]), c.id, id=>{
+    state.active=Number(id); const nc=activeComp(); if(state.tab==='desk'&&!(nc&&nc.is_commissioner)) state.tab='home'; render(); }),
+  $('button',{class:'btn',onclick:()=>{state.tab='new';render();}},'+ New')); }
+function tabbar(){
+  const c=activeComp();
+  const tabs=[['home','Dashboard',ICON.home],['tips','Tips',ICON.tips],['pool','Pool',ICON.pool]];
+  if(c&&c.is_commissioner) tabs.push(['desk','Desk',ICON.desk,c.awaiting]);
+  tabs.push(['acct','Account',ICON.acct]);
+  return $('div',{class:'tabbar'}, ...tabs.map(([id,label,ic,pip])=>{
+    const b=$('button',{class:state.tab===id?'on':'',onclick:()=>{state.tab=id;render();}}, $('span',{html:ic}), $('span',{},label));
+    if(pip) b.append($('span',{class:'tpip'},pip)); return b; }));
+}
+function dashboard(root){
+  const body=$('div');
+  if(!state.comps.length){ body.append($('div',{class:'card center'},
+    $('p',{},'No competitions yet.'),
+    $('button',{class:'btn go',style:'margin-top:12px',onclick:()=>{state.tab='new';render();}},'Join or create a comp'))); shell(root,body); return; }
+  const c=activeComp()||state.comps[0];
+  applyComp(c);
+
+  body.append(compBar(c));
+
+  // hero: total points up in lights
+  const me=c.me||{pts:0,pos:'—',move:0,hits:0};
+  body.append($('div',{class:'hero'},
+    $('div',{class:'head'}, $('div',{}, $('div',{class:'nm'},c.name), $('div',{class:'cad'},c.cadence)),
+      $('span',{class:'badge'+(c.state==='live'?' live':'')}, c.state==='live'?'Live':c.state==='upcoming'?'Not open':'Finished')),
+    $('div',{class:'pts'}, $('div',{class:'k'},'Your season points'),
+      $('div',{class:'n mono'}, (me.pts||0).toFixed(1), $('span',{class:'u'},'pts')),
+      $('div',{class:'s'}, c.resolved? `${me.hits} correct from ${c.resolved} resolved` : 'Scoring opens with the first result')),
+    $('div',{class:'foot'}, $('span',{}, `${c.resolved} of ${c.events} events resolved`),
+      $('span',{}, c.players+' tippers'))));
+
+  // supporting: position + gap
+  const leaderGap = c.leader && c.me ? (c.leader.pts - c.me.pts) : 0;
+  body.append($('div',{class:'duo'},
+    $('div',{class:'card stat'}, $('div',{class:'k'},'Ladder position'),
+      $('div',{class:'v'}, c.me?'#'+c.me.pos:'—', c.me?$('span',{class:'sub'},'of '+c.players):null),
+      $('div',{class:'s'}, c.me? moveText(c.me.move) : 'Ladder starts with the first result')),
+    $('div',{class:'card stat'},
+      $('div',{class:'k'}, c.me&&c.me.pos===1?'Your lead':'Behind leader'),
+      $('div',{class:'v'}, c.me? (c.me.pos===1?'+'+leaderText(c):'−'+leaderGap.toFixed(1)) : '—', $('span',{class:'sub'},'pts')),
+      $('div',{class:'s'}, c.leader? (c.me&&c.me.pos===1?'clear of the field':c.leader.name+' leads on '+c.leader.pts.toFixed(1)) : 'No results yet'))));
+
+  // pot / what you're up for
+  if(c.reward_mode==='cash'){
+    body.append($('div',{class:'card potcard'},
+      $('div',{}, $('div',{class:'k'},'Prize pot'), $('div',{class:'v mono'},c.pot.net_display),
+        $('div',{class:'s'}, `${c.pot.paidPlayers} paid in · ${c.buy_in} buy-in`)),
+      $('div',{style:'text-align:right'}, $('div',{class:'k'},'You’re playing for'),
+        $('div',{class:'v mono',style:'color:var(--warn)'}, c.pot.my_prize),
+        $('div',{class:'s'}, c.me?('if the ladder finishes as-is · #'+c.me.pos):'—'))));
+  }
+
+  // mini ladder
+  const lad=$('div',{class:'card lad'}, $('div',{class:'h',style:'font-size:15px;margin-bottom:10px'},'Ladder'));
+  api('/comps/'+c.id+'/ladder').then(({ladder})=>{
+    ladder.slice(0,6).forEach(r=>lad.append($('div',{class:'r'+(r.me?' me':'')},
+      $('span',{class:'pos'},r.pos), $('span',{class:'av',style:'background:'+r.user.color},initials(r.user.name)),
+      $('span',{class:'nm'},r.user.name+(r.me?' (you)':'')),
+      c.reward_mode==='cash'?$('span',{class:'pz'},r.prize):null,
+      $('span',{class:'pt mono'},r.pts))));
+  });
+  body.append(lad);
+  shell(root,body);
+}
+const moveText=m=>m>0?'▲ up '+m+' this round':m<0?'▼ down '+(-m)+' this round':'no change this round';
+const leaderText=c=>{ const second=null; return (c.me.pts-(c.leader?c.leader.pts:c.me.pts)).toFixed(1).replace('-',''); };
+
+/* ------------------------------ tips ------------------------------ */
+const labelsFor=(e,ids)=>ids.map(id=>e.options.find(o=>o.id===id)?.label).filter(Boolean).join(' & ');
+function eventRow(e){
+  const status=e.resolved?'Resolved':e.locked?'Locked':'Open';
+  const row=$('div',{class:'evrow'});
+  row.append($('div',{class:'evtop'},
+    $('div',{}, $('div',{class:'evtitle'},e.title),
+      $('div',{class:'evsub'}, e.resolved?('Result: '+labelsFor(e,e.winners)) : e.locked?('Locked · '+e.lock_date) : ('Closes '+e.lock_date))),
+    $('span',{class:'badge'+(status==='Open'?' live':'')}, status)));
+  const opts=$('div',{class:'opts'});
+  e.options.forEach(o=>{
+    const mine=e.my_tip===o.id, win=e.resolved&&e.winners.includes(o.id), dis=e.locked||e.resolved;
+    opts.append($('button',{class:'opt'+(mine?' mine':'')+(win?' win':'')+(dis?' dis':''),
+      onclick: dis?null:async()=>{ await api('/events/'+e.id+'/tip',{method:'POST',body:{optionId:o.id}}); render(); }},
+      (mine?'✓ ':'')+o.label));
+  });
+  row.append(opts);
+  if(!e.locked && !e.my_tip) row.append($('div',{class:'evnote'},'No pick yet — tap an option.'));
+  return row;
+}
+function tipsView(root){
+  const c=activeComp(); if(!c) return dashboard(root); applyComp(c);
+  const body=$('div'); body.append(compBar(c), $('h1',{class:'h'},'My tips'),
+    $('p',{class:'sub'},'Pick an outcome for each event. 10 pts split between everyone who’s right — being right alone is worth the most.'));
+  const wrap=$('div'); body.append(wrap); shell(root,body);
+  api('/comps/'+c.id+'/events').then(({events})=>{
+    if(!events.length){ wrap.append($('div',{class:'center'},'No events in this comp yet.')); return; }
+    [...new Set(events.map(e=>e.category))].forEach(cat=>{
+      const card=$('div',{class:'card'}); card.append($('div',{class:'cathead'},cat));
+      events.filter(e=>e.category===cat).forEach(e=>card.append(eventRow(e)));
+      wrap.append(card);
+    });
+  });
+}
+/* ------------------------------ pool ------------------------------ */
+function poolView(root){
+  const c=activeComp(); if(!c) return dashboard(root); applyComp(c);
+  const body=$('div'); body.append(compBar(c), $('h1',{class:'h'},'Pool room'),
+    $('p',{class:'sub'},'Everyone’s picks, revealed once each event locks. Correct picks are highlighted.'));
+  const wrap=$('div'); body.append(wrap); shell(root,body);
+  api('/comps/'+c.id+'/pool').then(({roster,events})=>{
+    const scroll=$('div',{class:'poolwrap'}), t=$('table',{class:'pool'});
+    const hr=$('tr',{}, $('th',{class:'evc'},'Event')); roster.forEach(u=>hr.append($('th',{},u.name)));
+    t.append($('thead',{},hr));
+    const tb=$('tbody');
+    events.forEach(e=>{
+      const tr=$('tr',{}, $('td',{class:'evc'}, $('div',{class:'evtitle',style:'font-size:12.5px'},e.title),
+        $('div',{class:'evsub'}, e.resolved?('✓ '+labelsFor(e,e.winners)) : e.locked?'awaiting result':'open')));
+      roster.forEach(u=>{
+        const pk=e.picks.find(p=>p.user_id===u.id)?.option_id;
+        const lbl=pk?(e.options.find(o=>o.id===pk)?.label):(e.locked?'—':'·');
+        const hit=e.resolved&&pk&&e.winners.includes(pk);
+        tr.append($('td',{class:'pc'+(hit?' hit':'')}, lbl));
+      });
+      tb.append(tr);
+    });
+    t.append(tb); scroll.append(t); wrap.append($('div',{class:'card',style:'padding:12px'},scroll));
+  });
+}
+/* --------------------------- results desk -------------------------- */
+function outcomeEditor(ev, preselect){
+  const sel=new Set(preselect||[]); const opts=$('div',{class:'opts'});
+  ev.options.forEach(o=>{ const b=$('button',{class:'opt'+(sel.has(o.id)?' mine':''),
+    onclick:()=>{ if(sel.has(o.id))sel.delete(o.id); else sel.add(o.id); b.classList.toggle('mine'); }},
+    o.label+' · '+o.picks); opts.append(b); });
+  return { node:opts, get:()=>[...sel] };
+}
+function proposalCard(p){
+  const card=$('div',{class:'card prop'+(p.conflict?' conflict':'')});
+  card.append($('div',{class:'evtitle'},p.title), $('div',{class:'evsub'},p.category+' · feed: '+(p.provider||'—')),
+    $('div',{class:'feedsays'},'Feed reports: '+p.outcome_labels.join(' & ')+(p.confidence==='high'?' · high confidence':' · needs review')));
+  if(p.conflict&&p.note) card.append($('div',{class:'conflictnote'},p.note));
+  const ed=outcomeEditor(p,p.outcome);
+  card.append($('div',{class:'lbl'},'Confirm as-is, or tap to change (more than one = dead heat):'), ed.node);
+  card.append($('button',{class:'btn go sm',style:'margin-top:12px',onclick:async()=>{ const out=ed.get(); if(!out.length) return;
+    const method=JSON.stringify(out.slice().sort())===JSON.stringify(p.outcome.slice().sort())?'confirmed':'overridden';
+    await api('/events/'+p.event_id+'/resolve',{method:'POST',body:{outcome:out,method}}); await loadComps(); render(); }},'Commit result'));
+  return card;
+}
+function manualCard(m){
+  const card=$('div',{class:'card prop'});
+  card.append($('div',{class:'evtitle'},m.title), $('div',{class:'evsub'},m.category+' · no feed decided this — set it by hand'));
+  const ed=outcomeEditor(m,[]);
+  card.append($('div',{class:'lbl'},'Set the result:'), ed.node);
+  card.append($('button',{class:'btn go sm',style:'margin-top:12px',onclick:async()=>{ const out=ed.get(); if(!out.length) return;
+    await api('/events/'+m.event_id+'/resolve',{method:'POST',body:{outcome:out,method:'manual'}}); await loadComps(); render(); }},'Adjudicate & commit'));
+  return card;
+}
+function deskView(root){
+  const c=activeComp(); if(!c||!c.is_commissioner) return dashboard(root); applyComp(c);
+  const body=$('div');
+  body.append(compBar(c), $('div',{class:'deskhead'}, $('h1',{class:'h'},'Results desk'),
+    $('button',{class:'btn sm',onclick:async()=>{ await api('/comps/'+c.id+'/sync-feeds',{method:'POST'}); render(); }},'Sync feeds')),
+    $('p',{class:'sub'},'Feeds propose, you confirm. Nothing scores until you commit it.'));
+  const wrap=$('div'); body.append(wrap); shell(root,body);
+  api('/comps/'+c.id+'/results-queue').then(({proposals,manual,awaiting})=>{
+    if(!awaiting) wrap.append($('div',{class:'card center'},'Nothing to action right now. Try Sync feeds, or advance the demo clock.'));
+    proposals.forEach(p=>wrap.append(proposalCard(p)));
+    if(manual.length){ wrap.append($('div',{class:'sechead'},'Needs adjudication')); manual.forEach(m=>wrap.append(manualCard(m))); }
+  });
+  api('/comps/'+c.id+'/results').then(({results})=>{
+    if(results.length){
+      const card=$('div',{class:'card'}); card.append($('div',{class:'h',style:'font-size:15px;margin-bottom:8px'},'Committed results'));
+      results.slice(0,15).forEach(r=>card.append($('div',{class:'crow'},
+        $('span',{class:'ct'},r.title), $('span',{class:'cw'},r.winners.join(' & ')), $('span',{class:'cm'},r.method))));
+      wrap.append(card);
+    }
+    if(c.reward_mode==='cash') wrap.append($('button',{class:'btn go block',style:'margin-top:4px',onclick:async()=>{
+      if(!confirm('Settle the pot and freeze payouts from the current ladder?')) return;
+      const {payouts}=await api('/comps/'+c.id+'/settle',{method:'POST'});
+      alert('Payouts:\n'+payouts.map(p=>'#'+p.position+'  '+p.amount).join('\n')); render();
+    }},'Settle pot & pay out'));
+  });
+}
+/* --------------------------- join / create ------------------------- */
+function newView(root){
+  let mode='join', err=null, created=null;
+  const body=$('div'); const seg=(m,l)=>$('button',{class:mode===m?'on':'',onclick:()=>{mode=m;err=null;draw();}},l);
+  const draw=()=>{ body.innerHTML='';
+    if(created){ body.append($('div',{class:'card',style:'border-color:var(--success)'},
+      $('div',{class:'h',style:'font-size:16px'},'“'+created.name+'” created'),
+      $('p',{class:'sub'},'Share this invite code so others can join:'),
+      $('div',{class:'pts',style:'padding:6px 0 14px'},$('div',{class:'n mono',style:'font-size:34px;letter-spacing:1px'},created.invite_code)),
+      $('button',{class:'btn go block',onclick:()=>{state.active=created.id;state.tab='home';render();}},'Go to dashboard')));
+      shell(root,body); return; }
+    body.append($('h1',{class:'h'},'New competition'),
+      $('div',{class:'seg'}, seg('join','Join with a code'), seg('create','Create one')),
+      err?$('div',{class:'err'},err):null,
+      mode==='join'?joinForm():createForm());
+    shell(root,body);
+  };
+  const joinForm=()=>$('div',{class:'card'},
+    $('label',{class:'field'},$('span',{},'Invite code'),$('input',{id:'jc',placeholder:'TNC2026'})),
+    $('button',{class:'btn go block',onclick:doJoin},'Join'),
+    $('p',{class:'sub',style:'margin-top:12px'},'Demo codes: TNC2026 · WC2026 · AUG2026 · SPRING2026'));
+  const createForm=()=>{
+    const cfg=$('div',{id:'cashcfg',style:'display:none'},
+      $('label',{class:'field'},$('span',{},'Buy-in ($ per player)'),$('input',{id:'buyin',type:'number',value:'25'})),
+      $('label',{class:'field'},$('span',{},'Host rake (%)'),$('input',{id:'rake',type:'number',value:'0'})),
+      $('label',{class:'field'},$('span',{},'Payout split'), sel2('split',[['top3','Top 3 · 60 / 30 / 10'],['top2','Top 2 · 70 / 30'],['top1','Winner takes all']])));
+    return $('div',{class:'card'},
+      $('label',{class:'field'},$('span',{},'Name'),$('input',{id:'cn',placeholder:'Thursday Night Club'})),
+      $('label',{class:'field'},$('span',{},'Shape'), sel2('ctype',[['season','Season-long'],['event','Event / tournament'],['window','Rolling window']])),
+      $('label',{class:'chkrow'}, $('input',{type:'checkbox',id:'cash',onchange:()=>{cfg.style.display=document.getElementById('cash').checked?'block':'none';}}), $('span',{},'Cash pot (real buy-in)')),
+      cfg,
+      $('button',{class:'btn go block',onclick:doCreate},'Create competition'));
+  };
+  async function doJoin(){ err=null; try{ const {comp}=await api('/comps/join',{method:'POST',body:{inviteCode:document.getElementById('jc').value}});
+    await loadComps(); state.active=comp.id; state.tab='home'; render(); }
+    catch(e){ err=e.message==='bad_code'?'No comp with that code.':e.message; draw(); } }
+  async function doCreate(){ err=null;
+    const cash=document.getElementById('cash').checked;
+    const splitMap={top1:{1:1},top2:{1:0.7,2:0.3},top3:{1:0.6,2:0.3,3:0.1}};
+    const body={ name:document.getElementById('cn').value||'New Competition', type:document.getElementById('ctype').value,
+      reward_mode: cash?'cash':'none' };
+    if(cash){ body.buy_in=Number(document.getElementById('buyin').value||0);
+      body.rake_pct=Number(document.getElementById('rake').value||0)/100;
+      body.payout_split=splitMap[document.getElementById('split').value]; }
+    try{ const {comp}=await api('/comps',{method:'POST',body}); await loadComps(); created=comp; draw(); }
+    catch(e){ err=e.data?.message||(e.message==='plan_limit'?'Your plan’s comp limit is reached — upgrade in Account.':e.message); draw(); }
+  }
+  draw();
+}
+function sel2(id,opts){ const s=$('select',{id}); opts.forEach(([v,l])=>s.append($('option',{value:v},l))); return s; }
+
+/* ---------------------------- account ----------------------------- */
+function accountView(root){
+  const body=$('div');
+  body.append($('h1',{class:'h'},'Account'), $('p',{class:'sub'},state.user.name+' · '+state.user.name.toLowerCase()),
+    $('div',{class:'card'}, $('div',{class:'stat'}, $('div',{class:'k'},'Current plan'),
+      $('div',{class:'v'},state.sub?.plan_name||'Free'),
+      $('div',{class:'s'}, (state.sub?.max_comps||1)+' comps · up to '+(state.sub?.max_players||8)+' players'))));
+  const row=$('div',{class:'row'});
+  api('/plans').then(({plans})=>plans.forEach(p=>{
+    const on=p.id===state.sub?.plan_id;
+    row.append($('div',{class:'plan'+(on?' on':'')},
+      $('div',{class:'nm'},p.name), $('div',{class:'pr'}, p.price_cents?p.price:'Free', p.price_cents?$('small',{},'/mo'):null),
+      $('ul',{html:p.features.map(f=>`<li>${f}</li>`).join('')}),
+      on?$('div',{class:'muted',style:'margin-top:10px;font-size:12.5px'},'Current plan'):
+        $('button',{class:'btn go sm block',style:'margin-top:10px',onclick:async()=>{await api('/subscribe',{method:'POST',body:{planId:p.id}});await boot();state.tab='acct';render();}},'Switch to '+p.name)));
+  }));
+  body.append($('div',{class:'card'},$('div',{class:'h',style:'font-size:16px'},'Change plan'),$('p',{class:'sub'},'Mock billing — no card charged in the prototype.'),row));
+  shell(root,body);
+}
+
+/* ----------------------------- helpers ---------------------------- */
+function selectEl(opts, val, on){ const s=$('select',{onchange:e=>on(e.target.value)});
+  opts.forEach(([v,l])=>s.append($('option',{value:v,selected:v===val?'selected':null},l))); return s; }
+
+function render(){ const root=document.getElementById('root'); root.innerHTML='';
+  if(!state.user){ authView(root); return; }
+  // guard comp-scoped tabs when there's no comp / not the commissioner
+  const c=activeComp();
+  if(['tips','pool','desk'].includes(state.tab) && !c) state.tab = state.comps.length?'home':'new';
+  if(state.tab==='desk' && !(c&&c.is_commissioner)) state.tab='home';
+  ({home:dashboard,tips:tipsView,pool:poolView,desk:deskView,acct:accountView,new:newView}[state.tab]||dashboard)(root);
+}
+boot();
+</script>
+</body>
+</html>

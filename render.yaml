@@ -1,0 +1,21 @@
+# Render Blueprint — tells Render how to run The Long Game.
+# You don't need to understand this file; Render reads it for you when you
+# choose "Blueprint" and point it at your code. It sets up one web service
+# with a small persistent disk so accounts and competitions are never lost.
+services:
+  - type: web
+    name: the-long-game
+    runtime: node
+    plan: starter            # $7/mo, always-on; required for the persistent disk below
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/plans
+    envVars:
+      - key: LG_ENV
+        value: production
+      - key: LG_DB
+        value: /data/long-game.db   # the database lives on the persistent disk
+    disk:
+      name: data
+      mountPath: /data
+      sizeGB: 1                # 1 GB is plenty for a beta (~$0.25/mo)
